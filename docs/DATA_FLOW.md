@@ -25,14 +25,18 @@ flowchart TD
 
 <!-- 노드가 늘어나면 위 블록을 복사해 DF-002, DF-003 ... 순서로 추가하세요. -->
 
-## Optional verification evidence flow
+## Development evidence (not product data)
 
-### DF-900
+`DF-H001`: Git change + feature/check map -> selected plan.
+`DF-H002`: plan + actual command execution -> receipt/logs -> existing review record.
+Schemas, persistence and exception paths are defined in [HARNESS.md](HARNESS.md).
+Evidence is stored outside the checkout; product data and approval state are not modified by the runner itself.
 
-- **Source:** Existing feature catalog (where present), approved check definitions and the existing local verifier.
-- **Input schema:** Version 1 map and receipt; field contract in `docs/HARNESS.md`.
-- **Transformation:** Validate IDs/references/paths, exact required-check coverage, revision/run/map binding, timestamps and artifact bytes against SHA-256.
-- **Output schema:** JSON gate result with explicit scope and `merge_authorized: false`.
-- **Persistence:** Gate writes no files. The existing runner owns ignored `artifacts/verification/<run_id>/` evidence and receipt storage.
-- **Downstream consumer:** `CMP-900`, local coordinator and independent reviewer; no direct business-state transition.
-- **Failure / exception path:** Exit 1 with `blocked`; CLI invocation errors exit 2. Missing or stale evidence must be rerun, not edited into a pass.
+### DF-H003: Receipt integrity check
+
+- **Source / input:** DF-H002 native receipt/logs plus caller expectations and a recomputed DF-H001 plan.
+- **Transformation:** Reconcile exact selected checks/argv, current source state, manifest digest, run/context, time ordering and streamed log size/SHA-256.
+- **Output:** Scoped evidence consistency with `execution_attested=false` and `merge_authorized=false`.
+- **Persistence / consumer:** Read-only JSON stdout -> existing handoff/review record. The runner continues owning external evidence storage.
+- **Failure / exception:** BLOCKED(exit 1); invalid CLI use exits 2. Dirty evidence is workspace-bound, not a verified commit; release consumers can require clean state.
+- **DF-H002 extension:** The existing schema_version 1 receipt adds evidence_contract_version 1, run_id, finished_at and per-executed-check log_sha256/log_bytes. Details: [EVIDENCE_INTEGRITY.md](EVIDENCE_INTEGRITY.md).

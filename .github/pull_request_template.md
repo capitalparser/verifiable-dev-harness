@@ -1,23 +1,13 @@
-## Purpose and scope
+## Outcome and scope
 
-BR / WF / CMP / DF / AC / feature IDs:
-Canonical owner and actual entry point:
-In scope / out of scope:
+사용자 결과 / 변경 범위 / 제외 범위. 기능 구현·배선·시험·필요 문서를 함께 묶었는가?
 
-## Verification receipt
+## Verification
 
-Exact head SHA and run ID:
-Map path and SHA-256:
-Commands actually run and environment:
-Positive path / discriminating negative case:
-Evidence location (sanitized; no customer data):
-Failed / blocked / not-run checks:
-Independent review or expected-result oracle:
+SHA·dirty 여부 / profile·선택 이유 / 실행 결과 / receipt 위치.
+필수 미실행·실패·잔여 위험을 명시한다. full은 해당 사유가 있을 때만 수행한다.
 
-## Boundaries
+## Risk and next action
 
-- [ ] No hidden authority, lease, approval, durable-state or external-action expansion.
-- [ ] Verifier/map/oracle changes receive independent review; evidence validity is not merge approval.
-- [ ] Real product E2E is distinguished from synthetic harness tests.
-
-## Rollback and remaining work
+계약·권한·데이터 영향 / rollback / 필요한 승인. 영향 없으면 짧게 N/A.
+검증 통과가 merge/deploy 승인을 뜻하지 않는다.

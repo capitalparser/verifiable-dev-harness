@@ -24,15 +24,21 @@ flowchart LR
 
 <!-- 컴포넌트가 늘어나면 위 블록을 복사해 CMP-002, CMP-003 ... 순서로 추가하세요. -->
 
-## Optional development tooling (outside the product runtime)
+## Development tooling (not product runtime)
 
-### CMP-900: Verification contract gate
+**CMP-H001: Verification planner/runner** — `tools/verify.py`.
+Responsibility/input/output/owner/dependencies/failure boundaries are defined in
+[HARNESS.md](HARNESS.md#cmp-h001-선택기와-실행기). It consumes the feature/check map,
+executes existing commands and emits evidence only. It does not replace the local
+agent registry, authority, lease, application runtime or merge control.
 
-- **Responsibility:** Validate feature-to-check mappings and local evidence receipt consistency.
-- **Input:** Versioned map, receipt, expected feature/run/revision, repository files.
-- **Output:** Machine-readable `map_valid`, `evidence_valid` or `blocked`; never a product approval.
-- **Owner:** Repository maintainer; implementation in `tools/verification_contract.py` and CLI in `tools/verify_contract.py`.
-- **Depends on:** Python standard library; Git for receipt-mode revision/clean-worktree checks.
-- **Must NOT:** Run map commands, invoke models, access the network, duplicate business logic, own leases/agent authority, promote durable decisions, merge or deploy.
-- **Failure behavior:** Missing, malformed, inconsistent or incomplete evidence blocks; not-run is not pass.
-- **Trust boundary:** Hashes detect inconsistency, not dishonest producers. A trusted isolated verifier and separately protected review/CI policy remain necessary. See `docs/HARNESS.md`.
+### CMP-H002: Receipt integrity validator
+
+- **Responsibility:** Check the existing CMP-H001 receipt against a recomputed plan, source state and log bytes.
+- **Input:** Existing manifest/receipt, caller-bound base/head/run/context and external evidence directory.
+- **Output:** VERIFIED_EVIDENCE / NO_CHANGES_EVIDENCE / BLOCKED with commit-or-workspace scope; no approval.
+- **Owner:** Existing harness owner; implementation in `tools/verify_receipt.py`.
+- **Depends on:** CMP-H001 selection/snapshot/fingerprint functions, Python standard library and Git.
+- **Must NOT:** Execute manifest checks, invent a second feature/lease/authority registry, merge, deploy or promote durable judgments.
+- **Failure behavior:** Missing integrity metadata, inconsistent plan/source/checks/logs or invalid types block. Old receipts require a real rerun, not invented hashes.
+- **Trust boundary:** Byte consistency is not execution attestation. Detailed contract and local integration: [EVIDENCE_INTEGRITY.md](EVIDENCE_INTEGRITY.md).

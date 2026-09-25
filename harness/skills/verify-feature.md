@@ -12,7 +12,12 @@
 2. Verify permitted role, lease, scope, data policy and source revision with their existing owners. Do not change these to finish a task. Use a safe fixture through the official product entry point.
 3. Run the approved positive case and assert the user-visible result. Run a discriminating negative case and relevant regression/architecture checks. Match against an independently defined outcome, not the implementation's own output. Backend-only tests do not verify a browser flow.
 4. Retain actual process results, logs and necessary trace/captures. Record tool/build/fixture versions. Never mark a check passed just because its output looks plausible or another agent says it ran.
-5. Submit the runner-produced receipt for structural validation and independent semantic review. Explicitly list failed, unavailable and not-run checks. Stop at the existing approval boundary; passing checks do not authorize merge/deploy or durable decisions.
+5. Follow docs/HARNESS.md risk-proportional review policy. Submit the native runner receipt to tools/verify_receipt.py for structural validation; use independent semantic review only where the existing risk/approval policy requires it. Explicitly list failed, unavailable and not-run checks. Stop at the existing approval boundary; passing checks do not authorize merge/deploy or durable decisions.
+
+Do not create a second feature map or run full/focused checks twice on unchanged inputs.
+The canonical map is harness/verification.json or the existing product registry.
+The integrity contract is docs/EVIDENCE_INTEGRITY.md. This skill is adapter-neutral;
+it does not install itself into global Codex/Claude settings or grant permissions.
 
 ## Failure-driven improvement and eval rubric
 
@@ -31,4 +36,4 @@ Keep one failure ledger in the existing eval owner: failure ID, sanitized report
 
 Score each case with explicit pass/fail on route correctness, source grounding, actual execution, oracle fidelity, evidence binding and authority preservation. Any fabricated execution or unauthorized action is a critical failure. Report case-level outcomes, number of repeats, model/adapter/tool versions, cost and latency; do not bury a critical failure in a mean score.
 
-Before/after trials must use the same frozen cases and execution conditions. Reserve held-out scenarios not used to write the skill; include ambiguous, missing-data and plausible-counterexample cases. Where multiple approved models are available, run the same eval across them and disclose disagreements. A separate LLM judge is advisory and can share failure modes with the worker; deterministic or human ground truth remains authoritative. No live model eval is included or claimed by the bundled Python unit tests.
+Trigger agent evals only for relevant skill/routing/policy changes or incidents, not every product PR. Before/after trials must use the same frozen cases and execution conditions. Reserve held-out scenarios not used to write the skill; include ambiguous, missing-data and plausible-counterexample cases. Where multiple approved models are available, run the same eval across them and disclose disagreements. A separate LLM judge is advisory and can share failure modes with the worker; deterministic or human ground truth remains authoritative. No live model eval is included or claimed by the bundled Python unit tests.

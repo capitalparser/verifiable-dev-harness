@@ -35,17 +35,3 @@
 - **Affects:** (관련 `WF-xxx`, `CMP-xxx`)
 
 <!-- 요구사항이 늘어나면 BR-002, BR-003 ... 순서로 추가하세요. -->
-
-## Shipped development-tooling requirement (optional for adopters)
-
-The 900-series IDs below describe this template's verification extension, not an adopter's business domain. Preserve existing product IDs when adopting it.
-
-### BR-900
-
-- **Statement:** A feature verification claim must connect a user symptom, real entry point, acceptance criteria, positive/negative checks and inspectable evidence for one immutable revision.
-- **Rationale:** Requested local-first harness improvement; no claim of measured productivity gains or externally verified talk statistics.
-- **Affects:** `WF-900`, `CMP-900`.
-
-### WF-900
-
-Observe symptom → locate canonical feature and source → execute approved checks in an isolated workspace → collect evidence → validate receipt → independent review → separately authorized decision. A valid receipt never grants merge, deployment or durable-decision authority.
