@@ -31,3 +31,14 @@ Responsibility/input/output/owner/dependencies/failure boundaries are defined in
 [HARNESS.md](HARNESS.md#cmp-h001-선택기와-실행기). It consumes the feature/check map,
 executes existing commands and emits evidence only. It does not replace the local
 agent registry, authority, lease, application runtime or merge control.
+
+### CMP-H002: Receipt integrity validator
+
+- **Responsibility:** Check the existing CMP-H001 receipt against a recomputed plan, source state and log bytes.
+- **Input:** Existing manifest/receipt, caller-bound base/head/run/context and external evidence directory.
+- **Output:** VERIFIED_EVIDENCE / NO_CHANGES_EVIDENCE / BLOCKED with commit-or-workspace scope; no approval.
+- **Owner:** Existing harness owner; implementation in `tools/verify_receipt.py`.
+- **Depends on:** CMP-H001 selection/snapshot/fingerprint functions, Python standard library and Git.
+- **Must NOT:** Execute manifest checks, invent a second feature/lease/authority registry, merge, deploy or promote durable judgments.
+- **Failure behavior:** Missing integrity metadata, inconsistent plan/source/checks/logs or invalid types block. Old receipts require a real rerun, not invented hashes.
+- **Trust boundary:** Byte consistency is not execution attestation. Detailed contract and local integration: [EVIDENCE_INTEGRITY.md](EVIDENCE_INTEGRITY.md).

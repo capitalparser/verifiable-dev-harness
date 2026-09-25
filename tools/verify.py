@@ -14,6 +14,7 @@ import re
 import subprocess
 import sys
 import time
+import uuid
 from datetime import datetime, timezone
 
 LEVELS = ("docs", "focused", "full")
@@ -101,7 +102,8 @@ def select(data: dict, paths: list[str], requested: str = "auto", feature_ids: t
 
 
 def git(root: Path, *args: str) -> bytes:
-    result = subprocess.run(["git", "-C", str(root), *args], capture_output=True, timeout=30, check=False)
+    result = subprocess.run(["git", "-C", str(root), *args], capture_output=True, timeout=30, check=False,
+                            env={k: v for k, v in os.environ.items() if not k.startswith("GIT_")})
     if result.returncode:
         raise ValueError(result.stderr.decode("utf-8", "replace").strip() or "git failed")
     return result.stdout
@@ -136,14 +138,29 @@ def snapshot(root: Path, base: str) -> dict:
             "changed_paths": sorted(set(paths + untracked))}
 
 
-def execute(root: Path, data: dict, plan: dict, state: dict, output: Path, context: str) -> dict:
+def log_fingerprint(path: Path) -> dict:
+    """Bind the actual log bytes, including a legitimate silent successful check."""
+    digest = hashlib.sha256()
+    size = 0
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+            size += len(block)
+    return {"log_sha256": digest.hexdigest(), "log_bytes": size}
+
+
+def execute(root: Path, data: dict, plan: dict, state: dict, output: Path, context: str,
+            run_id: str | None = None) -> dict:
+    run_id = run_id if run_id is not None else uuid.uuid4().hex
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,95}", run_id):
+        raise ValueError("run_id must be a safe nonempty identifier")
     output = output.resolve()
     if output == root or root in output.parents:
         raise ValueError("put evidence outside the checkout to avoid source/evidence collisions")
     if output.exists() and (not output.is_dir() or any(output.iterdir())):
         raise ValueError("output must be a new or empty directory")
     output.mkdir(parents=True, exist_ok=True)
-    receipt = {"schema_version": 1, "started_at": datetime.now(timezone.utc).isoformat(),
+    receipt = {"schema_version": 1, "evidence_contract_version": 1, "run_id": run_id, "started_at": datetime.now(timezone.utc).isoformat(),
                "state": state, "plan": plan, "context": context,
                "manifest_sha256": hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest(),
                "environment": {"python": sys.version, "platform": platform.platform()},
@@ -170,6 +187,7 @@ def execute(root: Path, data: dict, plan: dict, state: dict, output: Path, conte
                 item["status"] = "TIMEOUT"
             except OSError as exc:
                 item.update(status="ERROR", error=str(exc))
+        item.update(log_fingerprint(output / item["log"]))
         item["elapsed_seconds"] = round(time.monotonic() - tick, 3)
         failed = item["status"] != "PASS"
     receipt["status"] = "FAIL" if failed else "NO_CHANGES" if plan["no_changes"] else "PASS"
@@ -180,6 +198,7 @@ def execute(root: Path, data: dict, plan: dict, state: dict, output: Path, conte
     except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
         receipt.update(status="STALE", state_error=str(exc))
     receipt["elapsed_seconds"] = round(time.monotonic() - started, 3)
+    receipt["finished_at"] = datetime.now(timezone.utc).isoformat()
     (output / "receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return receipt
 
@@ -194,6 +213,7 @@ def main() -> int:
     parser.add_argument("--plan", action="store_true", help="select only; do not execute checks")
     parser.add_argument("--output", help="new/empty evidence directory outside the checkout")
     parser.add_argument("--context", default="unspecified", help="non-secret fixture/config/runtime identity")
+    parser.add_argument("--run-id", help="coordinator-issued run ID; defaults to a fresh UUID")
     args = parser.parse_args()
     try:
         root = Path(os.fsdecode(git(Path(args.root).resolve(), "rev-parse", "--show-toplevel")).strip()).resolve()
@@ -205,10 +225,10 @@ def main() -> int:
             return 0
         if not args.output:
             raise ValueError("--output required for execution")
-        receipt = execute(root, data, plan, state, Path(args.output), args.context)
+        receipt = execute(root, data, plan, state, Path(args.output), args.context, args.run_id)
         print(json.dumps({"status": receipt["status"], "profile": plan["profile"],
                           "head_sha": state["head_sha"], "dirty": state["dirty"],
-                          "receipt": str(Path(args.output).resolve() / "receipt.json")}, ensure_ascii=False))
+                          "run_id": receipt["run_id"], "receipt": str(Path(args.output).resolve() / "receipt.json")}, ensure_ascii=False))
         return 0 if receipt["status"] in ("PASS", "NO_CHANGES") else 1
     except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
         print(json.dumps({"status": "BLOCKED", "error": str(exc)}, ensure_ascii=False), file=sys.stderr)

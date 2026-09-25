@@ -1,0 +1,28 @@
+# Optional example only: review before copying into .github/workflows/.
+# Does not configure branch protection or mandatory review/CI policies.
+name: Native receipt integrity
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  contract:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Native runner and receipt regressions
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+      - name: Compile harness modules
+        run: python -m compileall -q tools tests
