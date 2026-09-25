@@ -24,3 +24,10 @@ flowchart TD
 - **Failure / exception path:** (검증 실패, 스키마 불일치 등이 발생하면 어디로 가는가)
 
 <!-- 노드가 늘어나면 위 블록을 복사해 DF-002, DF-003 ... 순서로 추가하세요. -->
+
+## Development evidence (not product data)
+
+`DF-H001`: Git change + feature/check map -> selected plan.
+`DF-H002`: plan + actual command execution -> receipt/logs -> existing review record.
+Schemas, persistence and exception paths are defined in [HARNESS.md](HARNESS.md).
+Evidence is stored outside the checkout; product data and approval state are not modified by the runner itself.
