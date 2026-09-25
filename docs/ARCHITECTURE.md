@@ -1,5 +1,7 @@
 # Architecture
 
+> Additional development adapters CMP-H003/CMP-H004 are defined in [FACTORY_READY.md](FACTORY_READY.md). They reuse CMP-H001 and do not change the product runtime.
+
 ```mermaid
 flowchart LR
     A[Source] --> B[Intake]

@@ -1,5 +1,7 @@
 # Data Flow
 
+> Navigation and disposable journey evidence flows DF-H004/DF-H005 are defined in [FACTORY_READY.md](FACTORY_READY.md); product data lineage is unchanged.
+
 ```mermaid
 flowchart TD
     S[Source] --> R[Raw Artifact]
