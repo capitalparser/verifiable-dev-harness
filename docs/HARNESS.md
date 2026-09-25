@@ -89,6 +89,28 @@ manifest digest, Python/platform, context, 실제 argv, 상태/시간/로그를 
 check에서 `{python}`, `{base}`, `{head}`, `{output}`을 쓸 수 있다. base는 비교 merge-base SHA다.
 깨끗한 SHA의 결과와 dirty 작업 트리 결과를 섞지 않는다. base 이후 통합 상태의 검증은 별도 의미다.
 
+## CONVERGENCE: 계획과 실제 결과 대조
+
+안정된 인계 시점에 기존 `ACCEPTANCE.md` 또는 PR 본문에서 범위 내 AC를 대조한다.
+별도 완료율·상태 레지스트리는 만들지 않는다.
+
+| 구분 | 확인할 사실 | 근거 |
+|---|---|---|
+| 계획 | 어떤 사용자 결과와 AC를 약속했는가 | 승인된 SPEC/AC와 범위 |
+| 구현 | 검증한 원천 상태에 실제 진입 경로와 동작이 있는가 | HEAD SHA와 dirty diff, route/API/CLI, 데이터 소비 경로 |
+| 검증 | 해당 동작을 실행해 기대 결과를 관찰했는가 | 같은 원천 상태의 receipt, 로그, 필요한 화면 증거 |
+| 통합 | 어느 브랜치에 병합됐는가 | Git 호스트의 PR/merge 기록 |
+| 출시 | 사용 환경에 반영되고 관찰됐는가 | 배포 기록과 실제 사용자 경로 |
+
+스키마나 계획 문서만 있는 기능을 구현으로 보고하지 않는다. 요청을 접수한 응답만으로
+비동기 처리의 최종 성공을 주장하지 않는다. 후속 수정으로 코드·fixture·검사 계약이
+바뀌면 영향받는 검증을 새 원천 상태에서 다시 수행하고 이전 결과와 구분한다.
+미구현·미실행·실패·차단 항목은 각각 남기고, 작업 제목이나 PR 생성만으로 완료를 선언하지 않는다.
+커밋된 PR의 구현·검증을 주장할 때는 PR head SHA에서 다시 확인한다.
+
+이 구분은 goodtek의 [계획과 실제 구현 대조](https://goodtek.xyz/blog/aiwa-hamgge-kodinghal-ddae-meonjeo-baeun-geos-mandeun-geosgwa-mandeulryeodeon-geoseul-gubunhagi/)와
+[제출·병합·동기화·출시 분리](https://goodtek.xyz/blog/baibeukodingi-ggoineun-sungan-munjeneun-kodeuga-anira-saikeulieossda/) 사례에서 원칙만 차용했다.
+
 ## 증거의 비용과 한계
 
 재현 명령+기대/실제 출력+로그가 기본이다. UI 시각 변경만 캡처, 성능/메모리 주장만 trace/profile을 요구한다.
