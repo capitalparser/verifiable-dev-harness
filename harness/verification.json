@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "docs_paths": ["README.md", "docs/*", "specs/*", ".github/pull_request_template.md"],
+  "risk_paths": ["AGENTS.md", "tools/*", "harness/*", "tests/*", ".github/workflows/*"],
+  "checks": {
+    "diff": {"argv": ["git", "diff", "--check", "{base}", "--"], "timeout_seconds": 30},
+    "harness-contract": {
+      "argv": ["{python}", "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"],
+      "timeout_seconds": 120
+    }
+  },
+  "profiles": {"docs": ["diff"], "focused": ["diff"], "full": ["diff", "harness-contract"]},
+  "features": [
+    {
+      "id": "harness-verification",
+      "paths": ["tools/*", "harness/*", "tests/*", "AGENTS.md", ".gitignore"],
+      "symptoms": ["과도한 전체 회귀", "변경 기능의 검증 누락", "실행하지 않은 검사를 통과로 보고"],
+      "entrypoints": ["tools/verify.py:main", "tools/verify.py:select", "tools/verify.py:execute"],
+      "journey": ["--base REF --plan으로 선택 이유 확인", "--output으로 한 번 실행", "receipt.json과 실패 로그 확인"],
+      "checks": ["harness-contract"],
+      "failure_probe": "미매핑 변경은 full로 승격하고, 위험 변경을 focused로 낮추려 하면 거부한다."
+    }
+  ]
+}
