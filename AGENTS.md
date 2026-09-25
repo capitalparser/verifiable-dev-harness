@@ -86,3 +86,19 @@ This template ships with the minimal core (`PRODUCT` / `ARCHITECTURE` / `DATA_FL
 - `docs/STATE_MODEL.md` — when a task or entity has non-trivial states and transitions (e.g. an approval workflow).
 
 Reuse the same header pattern as `ARCHITECTURE.md` (Responsibility / Input / Output / Owner / Failure) for any new document. Do not invent a new format per document.
+
+## Verification-first extension
+
+The existing document priority describes approved product intent. It does not override organizational security rules, workspace boundaries or explicit human approvals. Descriptive AS-IS documents are observations, not permission to rewrite product semantics.
+
+For an adopted verification map, follow `docs/HARNESS.md` and `verification/skills/verify-feature.md`:
+
+1. Resolve symptoms through the existing feature catalog; read the actual entry point before proposing a cause. A new verification map is a projection, not a second mutable feature/authority registry.
+2. Bind checks and evidence to the exact feature, run, map digest and commit. Preserve `failed`, `not_run`, `error` and unresolved work; never convert absence into success.
+3. Exercise a positive path and a discriminating negative case. A synthetic fixture is not proof of real product E2E. Report both separately.
+4. Reuse the official product path and independent expected-result oracle. Do not patch product logic or expected results merely to match the observed output.
+5. Turn repeated failures into tested gates when deterministic enforcement is possible. Evaluate skill changes on held-out failures; an LLM judge is advisory, not the oracle.
+6. Keep agents, adapters, leases, write scope and approvals in their existing owners. No automatic merge, deployment, durable judgment promotion or permission expansion follows from passing verification.
+7. Protect verifier/map/oracle changes with independent review. An agent editing both implementation and its own gate cannot certify itself.
+
+The shipped CLI validates contracts and evidence consistency only. It neither executes product checks nor authenticates who produced a receipt. State exactly what ran and in which environment.

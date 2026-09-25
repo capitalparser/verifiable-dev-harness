@@ -44,3 +44,26 @@ flowchart TD
 ## 확장하기
 
 프로젝트가 복잡해지면 `docs/DOMAIN_MODEL.md`, `docs/WORKFLOWS.md`, `docs/STATE_MODEL.md` 등을 필요한 시점에 추가합니다. 새 문서를 추가할 때는 `ARCHITECTURE.md`와 동일한 헤더 패턴(Responsibility / Input / Output / Owner / Failure)을 재사용하세요. 문서 형식을 새로 만들지 않는 것이 핵심입니다. 자세한 규칙은 `AGENTS.md`를 참고하세요.
+
+## 검증 우선 하네스 확장
+
+문서 계약에 **증상 → 실제 진입점 → AC → 검증 명령 → 실행 증거 → 반례**를 연결하는 선택적 확장입니다. 제품 런타임이나 새로운 멀티에이전트 오케스트레이터는 아닙니다.
+
+```sh
+# Python 3.10+; 외부 패키지 설치 없음
+python -m unittest discover -s tests -p 'test_*.py' -v
+python tools/verify_contract.py lint --root . --map verification/feature-map.json
+```
+
+`lint` 성공은 지도 구조가 유효하다는 뜻이며 제품 검증 완료가 아닙니다. 실행 증거 검증은 `receipt` 서브커맨드로 별도 수행합니다. 스키마, 생산자 신뢰 한계, Windows/POSIX 적용 절차는 [HARNESS](docs/HARNESS.md)를 보세요.
+
+| 파일 | 역할 |
+|---|---|
+| `verification/feature-map.json` | 이 저장소 검증기의 실제 진입점·AC·정상/반례 검사 지도 |
+| `tools/verification_contract.py`, `tools/verify_contract.py` | 읽기 전용 계약/증거 gate |
+| `tests/test_verification_contract.py` | 정상 및 결함 주입 회귀시험 |
+| `verification/skills/verify-feature.md` | 모델/adapter 중립 검증 절차와 skill eval rubric |
+| `docs/LOCAL_HARNESS_ADOPTION.md` | 기존 feature_list·registry·lease·verify.sh 보존형 이관 및 로컬 작업 지시 |
+| `specs/verification-gate/` | 이 확장의 명세·인수조건 |
+
+기존 프로젝트에는 이 저장소의 `AGENTS.md`나 `.codex` 설정을 통째로 덮어쓰지 마세요. 기존 기능 목록/권한/검증기를 확인한 뒤 검증 메타데이터와 gate 호출만 연결합니다. 이 PR만으로 사용자 PC나 기존 프로젝트 설정이 변경되지는 않습니다.
