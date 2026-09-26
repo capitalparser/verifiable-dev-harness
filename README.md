@@ -1,27 +1,48 @@
-# Repository Development Contract
+# Verifiable Dev Harness
 
-> **Verification-first harness for AI-assisted software development.**  
-> Automate more of the development loop without giving up traceability, evidence, or human control.
+[한국어](README.ko.md) · **English**
 
-AI coding agents can generate code quickly. The harder problem is deciding **what changed, what must be verified, whether the checks actually ran, and what a passing result is allowed to mean**.
+> **Verification-first infrastructure for AI-assisted software development.**  
+> Automate more of the development loop without giving up traceability, reproducibility, or human control.
 
-Repository Development Contract is an opinionated, lightweight harness for that problem. It combines repository-level intent, feature navigation, risk-proportional verification, executable checks, and evidence handoff so that humans and coding agents can work against the same source of truth.
+AI coding agents can generate code quickly. The harder engineering problem is deciding:
 
-한국어로 요약하면: **AI에게 코드를 많이 쓰게 하는 것보다, 잘못하기 어렵고 결과를 검증할 수 있는 개발 환경을 만드는 데 초점을 둔 템플릿입니다.**
+- what actually changed,
+- which checks are required,
+- whether those checks really ran,
+- what evidence supports the result,
+- and what a passing result is allowed to authorize.
+
+**Verifiable Dev Harness** is a lightweight repository harness for that problem.
+
+It connects product intent, feature navigation, risk-proportional verification, executable checks, and evidence handoff so that humans and coding agents can work against the same source of truth.
 
 ---
 
 ## Why this exists
 
-The goal is not maximum agent autonomy. The goal is **maximum useful automation under explicit verification and control boundaries**.
+The goal is not maximum agent autonomy.
 
-This repository is built around a few principles:
+The goal is:
 
-- **Make the correct path the easy path.** Put recurring constraints into architecture, lint, contracts, and executable checks instead of relying only on prompts.
-- **Verify behavior, not narratives.** “I tested it” is not evidence. Record the actual command, source state, environment, result, and logs.
-- **Scale verification with risk.** Run the smallest convincing set of checks for the change; escalate when shared contracts, authority, durable data, calculations, or unmapped impact are involved.
-- **Keep source-of-truth ownership clear.** Product intent, architecture, data flow, feature navigation, execution evidence, and approval are related but not interchangeable.
-- **Do not turn the harness into a bottleneck.** Avoid micro-sliced PRs, duplicate full regression, unnecessary multi-model review, and paperwork that does not improve confidence.
+> **maximize useful development automation while keeping the result explainable, reproducible, and challengeable.**
+
+That leads to five design principles.
+
+1. **Make the correct path the easy path.**  
+   Move recurring constraints into architecture, contracts, lint, and executable checks instead of repeating them in prompts.
+
+2. **Verify behavior, not narratives.**  
+   “I tested it” is not evidence. Record the command, source state, environment, result, and logs.
+
+3. **Scale verification with risk.**  
+   Run the smallest convincing set of checks for the change, then escalate when shared contracts, authority, durable data, calculations, or unmapped impact are involved.
+
+4. **Keep authority boundaries explicit.**  
+   Verification evidence does not automatically grant merge, deployment, business-decision, or external-action authority.
+
+5. **Do not make verification the next bottleneck.**  
+   Avoid micro-sliced PRs, duplicate full regression, unnecessary reviewer chains, and documentation that does not improve confidence.
 
 ---
 
@@ -35,10 +56,10 @@ flowchart LR
     D --> E["Execute Checks<br/>real commands"]
     E --> F["Evidence Receipt<br/>SHA · environment · logs · status"]
     F --> G["Integrity Validation<br/>recompute & compare"]
-    G --> H["Human / Existing Policy<br/>review · merge · deploy"]
+    G --> H["Existing Control Boundary<br/>review · merge · deploy"]
 ```
 
-A passing verification result is **evidence**, not approval. Merge, deployment, durable business decisions, and external actions remain under the repository or organization’s existing authorization model.
+A passing verification result is **evidence**, not approval.
 
 ---
 
@@ -50,7 +71,7 @@ A passing verification result is **evidence**, not approval. Merge, deployment, 
 | Product intent | Problem, actors, business requirements | `docs/PRODUCT.md` |
 | Architecture | Component responsibilities and boundaries | `docs/ARCHITECTURE.md` |
 | Data flow | Source → transformation → persistence → consumer lineage | `docs/DATA_FLOW.md` |
-| Feature-level contract | Feature behavior and acceptance criteria | `specs/` |
+| Feature contract | Feature behavior and acceptance criteria | `specs/` |
 | Verification policy | Risk-proportional verification and evidence semantics | `docs/HARNESS.md` |
 | Feature navigation | Symptom → feature → spec → source → test lookup | `tools/feature_map.py` |
 | Verification runner | Select and execute the relevant check set | `tools/verify.py` |
@@ -58,13 +79,11 @@ A passing verification result is **evidence**, not approval. Merge, deployment, 
 | Runnable journey pilot | Disposable environment for an actual CLI journey | `tools/harness_journey.py` |
 | Local adoption | Integrate without replacing existing registry/lease/runner owners | `docs/LOCAL_ADOPTION.md` |
 
-The repository itself is also used as the pilot system. Its current runnable feature map lives in `harness/verification.json`.
+The repository itself is also the pilot system. Its runnable feature map is in `harness/verification.json`.
 
 ---
 
-## Core ideas
-
-### 1. Risk-proportional verification
+## 1. Risk-proportional verification
 
 Verification is selected from the actual change surface.
 
@@ -75,20 +94,25 @@ Verification is selected from the actual change surface.
 The runner will not silently downgrade a change below its computed minimum profile. Duplicate check IDs are executed once.
 
 ```sh
-# Plan only — this does not execute verification
+# Plan only — no verification has run yet
 python -B tools/verify.py --base origin/main --plan
 
 # Execute the selected verification once
-python -B tools/verify.py   --base origin/main   --output ../rdc-evidence/run-001   --context local
+python -B tools/verify.py \
+  --base origin/main \
+  --output ../vdh-evidence/run-001 \
+  --context local
 ```
 
-`origin/main` is only an example. Use an approved comparison ref or immutable commit for your environment.
+`origin/main` is only an example. Use an approved comparison ref or immutable commit in your environment.
 
 ---
 
-### 2. Feature Map as navigation infrastructure
+## 2. Feature Map as navigation infrastructure
 
-The feature map is not a second requirements database. It connects existing intent and code so that an agent can move from a vague report to the relevant implementation and verification path.
+The Feature Map is not a second requirements database.
+
+It connects existing intent and implementation so that an agent can move from a vague report to the relevant source and verification path.
 
 ```text
 user symptom
@@ -109,50 +133,54 @@ python -B tools/feature_map.py lookup --query "verification missing"
 python -B tools/feature_map.py lint
 ```
 
-The current implementation resolves Python symbols and Markdown acceptance headings without importing or executing the target code. Broken references fail lint rather than silently becoming stale navigation.
+The current implementation resolves Python symbols and Markdown acceptance headings without importing or executing the target code.
 
-The map is deliberately **navigation**, not diagnosis. Matching a feature does not prove the root cause.
+Broken references fail lint instead of silently becoming stale navigation.
+
+The map is deliberately **navigation, not diagnosis**. Matching a feature does not prove the root cause.
 
 ---
 
-### 3. Evidence-producing verification
+## 3. Evidence-producing verification
 
-The runner records the source state and actual execution rather than only returning a green/red summary.
+The runner records source state and actual execution instead of only returning green/red.
 
-A receipt can include:
+A receipt can contain:
 
 - head / base / merge-base SHA
 - dirty workspace state and workspace digest
 - selected profile and checks
 - actual argv
 - environment and non-secret context
-- PASS / FAIL / TIMEOUT / ERROR / NOT_RUN / STALE
+- `PASS / FAIL / TIMEOUT / ERROR / NOT_RUN / STALE`
 - elapsed time
 - log path, size, and SHA-256
 - run ID and timestamps
 
-A failed check stops the remaining sequence and leaves them as `NOT_RUN`. There is no automatic retry-to-green.
+A failed check leaves remaining checks as `NOT_RUN`. There is no automatic retry-to-green.
 
 Evidence is written outside the checkout to reduce source/evidence collisions.
 
 ---
 
-### 4. Receipt integrity is not execution attestation
+## 4. Receipt integrity is not execution attestation
 
 `tools/verify_receipt.py` recomputes the expected source state and check plan and compares them with the submitted receipt and logs.
 
-It can detect inconsistencies such as:
+It can reject inconsistencies such as:
 
 - stale or different source state
 - missing, duplicated, or unexpected checks
 - command drift
-- altered or missing log bytes
+- altered or missing logs
 - mismatched run/context/manifest
-- failed, timed-out, or not-run checks reported as success
+- failed, timed-out, or not-run checks represented as success
 
-It **cannot** prove that an untrusted producer honestly executed the commands. A producer who controls both the receipt and logs can fabricate matching hashes.
+But hashes are not identity.
 
-For that reason, verified evidence does not imply:
+A producer who controls both the receipt and logs can fabricate mutually matching bytes. This harness therefore does **not** claim cryptographic execution attestation.
+
+Verified evidence does not imply:
 
 ```text
 execution_attested = true
@@ -165,13 +193,13 @@ See `docs/EVIDENCE_INTEGRITY.md`.
 
 ---
 
-### 5. Factory-ready execution before agent scale
+## 5. Factory-ready execution before agent scale
 
-Before scaling to many agents, a feature should be easy to reproduce in a controlled environment:
+Before scaling to many agents, a feature should be reproducible in a controlled environment.
 
 ```text
 prepare known state
-→ start or invoke the real product path
+→ invoke the real product path
 → exercise a success case
 → exercise a discriminating failure case
 → inspect observable output
@@ -179,17 +207,17 @@ prepare known state
 → clean up only owned resources
 ```
 
-This repository includes a native CLI pilot through `tools/harness_journey.py`. It is a harness self-test, not proof that another product’s UI or business workflow is correct.
+This repository includes a native CLI pilot through `tools/harness_journey.py`.
 
-For a web or service product, replace that pilot with the product’s real input → processing → output journey, reusing the project’s existing browser, database, container, or test-environment tooling.
+It is a harness self-test, not proof that another product's UI or business workflow is correct.
+
+For a web or service product, replace that pilot with the product's real input → processing → output journey while reusing the existing browser, database, container, or test-environment tooling.
 
 See `docs/FACTORY_READY.md`.
 
 ---
 
 ## Source-of-truth model
-
-The intended hierarchy is:
 
 ```text
 PRODUCT
@@ -205,7 +233,11 @@ source code + tests
 execution evidence
 ```
 
-Code establishes **AS-IS behavior**. Approved product/spec documents establish **intended behavior**. When they disagree, the disagreement should be surfaced — not silently normalized by rewriting one from the other.
+Code establishes **AS-IS behavior**.
+
+Approved product/spec documents establish **intended behavior**.
+
+When they disagree, the disagreement should be surfaced — not silently normalized by rewriting one from the other.
 
 Structural references can be automated. Semantic intent still requires explicit ownership.
 
@@ -213,7 +245,7 @@ Structural references can be automated. Semantic intent still requires explicit 
 
 ## Human, deterministic, and AI responsibilities
 
-This repository does not prescribe one universal operating model, but it encourages explicit boundaries.
+This project does not prescribe one universal operating model. It encourages explicit task-level boundaries.
 
 | Responsibility | Typical owner |
 |---|---|
@@ -222,9 +254,39 @@ This repository does not prescribe one universal operating model, but it encoura
 | Ambiguous judgment, policy changes, exceptions | Human / domain owner |
 | Merge, deployment, durable decisions, external actions | Existing authorized control |
 
-A task performed by an LLM does not automatically gain decision authority. A human-owned outcome does not mean every step must be performed manually.
+A task performed by an LLM does not automatically gain decision authority.
 
-For regulated or high-stakes workflows, these boundaries should be modeled at the task level rather than labeling an entire module “AI” or “human”.
+A human-owned outcome does not mean every step must be performed manually.
+
+---
+
+## Quick start
+
+Requirements:
+
+- Python 3.10+
+- Git
+- no external Python packages for the core harness
+
+```sh
+# 1. Validate feature navigation
+python -B tools/feature_map.py lint
+
+# 2. Inspect what would run
+python -B tools/verify.py --base origin/main --plan
+
+# 3. Run verification
+python -B tools/verify.py \
+  --base origin/main \
+  --feature harness-verification \
+  --output ../vdh-evidence/run-001 \
+  --context local
+
+# 4. Run the disposable native journey directly
+python -B tools/harness_journey.py
+```
+
+For receipt-integrity usage, see `docs/EVIDENCE_INTEGRITY.md`.
 
 ---
 
@@ -249,32 +311,6 @@ See `docs/LOCAL_ADOPTION.md`.
 
 ---
 
-## Quick start
-
-Requirements:
-
-- Python 3.10+
-- Git
-- no external Python packages for the core harness
-
-```sh
-# 1. Validate repository feature navigation
-python -B tools/feature_map.py lint
-
-# 2. Inspect what would run
-python -B tools/verify.py --base origin/main --plan
-
-# 3. Run verification and write evidence outside the checkout
-python -B tools/verify.py   --base origin/main   --feature harness-verification   --output ../rdc-evidence/run-001   --context local
-
-# 4. Run the repository's disposable native journey directly
-python -B tools/harness_journey.py
-```
-
-For receipt-integrity usage, see `docs/EVIDENCE_INTEGRITY.md`.
-
----
-
 ## What this project intentionally does not do
 
 This is not:
@@ -288,7 +324,7 @@ This is not:
 - a reason to run every regression suite on every change
 - a requirement to use multiple LLM judges for ordinary PRs
 
-The harness is designed to make development **more observable, reproducible, and falsifiable** without turning verification itself into the next bottleneck.
+The harness is meant to make development **more observable, reproducible, and falsifiable** without turning verification itself into the next bottleneck.
 
 ---
 
@@ -324,11 +360,13 @@ The harness is designed to make development **more observable, reproducible, and
 
 ---
 
-## Design goal
+## Direction
 
 The long-term direction is simple:
 
 > **A development system where agents can understand the product, make bounded changes, execute the real path, produce evidence, and leave the final authority boundary explicit.**
+
+A planned next layer is a **human-readable system/process/decision map** generated from the same source contracts — showing modules, workflows, rule-based tasks, AI-assisted tasks, human decisions, and their verification status without creating another manually maintained source of truth.
 
 The metric is not how many agents or PRs the system can produce.
 
