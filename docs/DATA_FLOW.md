@@ -42,3 +42,9 @@ Evidence is stored outside the checkout; product data and approval state are not
 - **Persistence / consumer:** Read-only JSON stdout -> existing handoff/review record. The runner continues owning external evidence storage.
 - **Failure / exception:** BLOCKED(exit 1); invalid CLI use exits 2. Dirty evidence is workspace-bound, not a verified commit; release consumers can require clean state.
 - **DF-H002 extension:** The existing schema_version 1 receipt adds evidence_contract_version 1, run_id, finished_at and per-executed-check log_sha256/log_bytes. Details: [EVIDENCE_INTEGRITY.md](EVIDENCE_INTEGRITY.md).
+
+## Delegated task handoff
+
+DF-H006: existing owner context + role packet + native evidence -> validated next-role
+proposal -> existing coordinator. No new state store or automatic dispatch. Contracts and
+failure paths: [ORCHESTRATION.md](ORCHESTRATION.md#df-h006-task-handoff-to-next-role-proposal).

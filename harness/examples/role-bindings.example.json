@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "example_only": true,
+  "consumed_by_checker": false,
+  "default_adapter_ref": null,
+  "roles": {
+    "planner": {
+      "adapter_ref": null,
+      "required_capabilities": ["repository_read", "grounded_planning"],
+      "skill": "harness/skills/plan-change.md"
+    },
+    "implementer": {
+      "adapter_ref": null,
+      "required_capabilities": ["repository_read", "scoped_write", "test_execution"],
+      "skill": "harness/skills/implement-plan.md"
+    },
+    "verifier": {
+      "runner_ref": "tools/verify.py",
+      "receipt_validator_ref": "tools/verify_receipt.py",
+      "model_ref": null,
+      "skill": "harness/skills/verify-feature.md"
+    },
+    "reviewer": {
+      "adapter_ref": null,
+      "required_capabilities": ["repository_read", "evidence_inspection"],
+      "session_policy": "existing_risk_policy",
+      "skill": "harness/skills/review-change.md"
+    }
+  },
+  "fallback_policy": "stop_if_capability_or_data_permission_is_missing"
+}

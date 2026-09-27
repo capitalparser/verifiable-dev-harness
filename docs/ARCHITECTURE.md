@@ -44,3 +44,9 @@ agent registry, authority, lease, application runtime or merge control.
 - **Must NOT:** Execute manifest checks, invent a second feature/lease/authority registry, merge, deploy or promote durable judgments.
 - **Failure behavior:** Missing integrity metadata, inconsistent plan/source/checks/logs or invalid types block. Old receipts require a real rerun, not invented hashes.
 - **Trust boundary:** Byte consistency is not execution attestation. Detailed contract and local integration: [EVIDENCE_INTEGRITY.md](EVIDENCE_INTEGRITY.md).
+
+## Model-neutral role handoffs
+
+CMP-H005: read-only role/binding/evidence checks, reusing CMP-H001/H002/H003.
+Responsibility, inputs, outputs, ownership and trust limits are defined in
+[ORCHESTRATION.md](ORCHESTRATION.md#cmp-h005-read-only-handoff-checker).

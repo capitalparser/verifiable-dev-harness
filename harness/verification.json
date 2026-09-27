@@ -89,14 +89,18 @@
         "실행하지 않은 검사를 통과로 보고",
         "테스트가 너무 많이 돌아요",
         "full regression",
-        "임시 실행 환경 재현 실패"
+        "임시 실행 환경 재현 실패",
+        "계획과 다르게 구현",
+        "리뷰 단계 건너뛰기",
+        "orchestration handoff"
       ],
       "entrypoints": [
         "tools/verify.py:main",
         "tools/verify.py:select",
         "tools/verify.py:execute",
         "tools/feature_map.py:main",
-        "tools/harness_journey.py:main"
+        "tools/harness_journey.py:main",
+        "tools/orchestration_contract.py:main"
       ],
       "journey": [
         "feature_map.py lookup --query로 후보 기능과 실제 소스를 찾는다",
@@ -116,7 +120,8 @@
         "tests": [
           "tests/test_verify.py:SelectionTests.test_one_feature_does_not_run_neighbor",
           "tests/test_factory_ready.py:MapTests.test_missing_symbol_blocks",
-          "tests/test_factory_ready.py:GuardrailTests.test_navigation_has_no_execution_or_write_dependencies"
+          "tests/test_factory_ready.py:GuardrailTests.test_navigation_has_no_execution_or_write_dependencies",
+          "tests/test_orchestration_contract.py:HandoffTests.test_ready_transitions_reuse_native_evidence"
         ],
         "acceptance": [
           {
@@ -143,6 +148,30 @@
             "ref": "specs/harness-verification/ACCEPTANCE.md#AC-H013",
             "checks": [
               "feature-map",
+              "harness-contract"
+            ]
+          },
+          {
+            "ref": "docs/ORCHESTRATION.md#AC-H020",
+            "checks": [
+              "harness-contract"
+            ]
+          },
+          {
+            "ref": "docs/ORCHESTRATION.md#AC-H021",
+            "checks": [
+              "harness-contract"
+            ]
+          },
+          {
+            "ref": "docs/ORCHESTRATION.md#AC-H022",
+            "checks": [
+              "harness-contract"
+            ]
+          },
+          {
+            "ref": "docs/ORCHESTRATION.md#AC-H023",
+            "checks": [
               "harness-contract"
             ]
           }
