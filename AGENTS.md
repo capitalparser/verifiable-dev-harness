@@ -89,3 +89,10 @@ existing authorization. Keep leases, registry/authority and worktree ownership i
 
 Extend docs with DOMAIN_MODEL / WORKFLOWS / STATE_MODEL only when complexity needs it.
 Prefer links to canonical records over duplicate documents or a second status registry.
+
+## Model-neutral role handoffs (opt-in)
+
+For delegated planning/implementation/review, use [ORCHESTRATION](docs/ORCHESTRATION.md).
+It reuses the existing feature/runner/receipt owners and separates plan fidelity from original
+requirement satisfaction. The checker proposes routes only; model dispatch, authority, stage
+history and budgets remain with the existing coordinator. Small fixes still use short notes.
